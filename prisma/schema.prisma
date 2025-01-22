@@ -1,0 +1,125 @@
+datasource mydatabase {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model UnverifiedVendorUser {
+  id                    Int           @id @default(autoincrement())
+  company_name          String
+  cin_number            String
+  company_nature        CompanyNature
+  role                  VendorRole
+  contact_number        String
+  contact_person_name   String
+  email                 String        @unique
+  notional_amount       Float
+  website_link          String?
+  communication_address String
+  city                  String
+  pin_code              String
+  state                 String
+  gst_number            String?
+  mandi_license         String?
+  apmc_license          String?
+  commodity             String?
+  business_type         BusinessType
+  referral_code         String?
+}
+
+model VendorUser {
+  id                    Int           @id @default(autoincrement())
+  company_name          String
+  cin_number            String
+  company_nature        CompanyNature
+  role                  VendorRole
+  contact_number        String
+  contact_person_name   String
+  email                 String        @unique
+  notional_amount       Float
+  website_link          String?
+  communication_address String
+  city                  String
+  pin_code              String
+  state                 String
+  gst_number            String?
+  mandi_license         String?
+  apmc_license          String?
+  commodity             String?
+  business_type         BusinessType
+  referral_code         String?
+  auctions_created      Auction[]     @relation("VendorAuctions")
+  auctions_participated Auction[]     @relation("AuctionParticipants")
+  Bid                   Bid[]
+}
+
+model Auction {
+  id                 Int           @id @default(autoincrement())
+  commodity          String
+  grade              String
+  start_time         DateTime
+  tick_size          Float
+  bid_challenge_time Int
+  location           String
+  is_private         Boolean
+  auction_type       String
+  lot_count_quantity Int
+  initial_bid        Float
+  min_selling_price  Float
+  emd_amount         Float
+  warehouse          String
+  sample_request     Boolean
+  phase1_count       Int
+  entering_price     Float
+  last_bidding_time  DateTime?
+  auction_status     AuctionStatus @default(Pending)
+  min_notional_entry Float
+
+  bids Bid[]
+
+  creator      VendorUser   @relation("VendorAuctions", fields: [creatorId], references: [id])
+  creatorId    Int
+  participants VendorUser[] @relation("AuctionParticipants")
+}
+
+model Bid {
+  id        Int      @id @default(autoincrement())
+  auctionId Int
+  vendorId  Int
+  amount    Float
+  timestamp DateTime @default(now())
+
+  auction Auction    @relation(fields: [auctionId], references: [id])
+  vendor  VendorUser @relation(fields: [vendorId], references: [id])
+}
+
+enum CompanyNature {
+  Private
+  LLC
+  Partnership
+  Proprietorship
+}
+
+enum VendorRole {
+  Buyer
+  Seller
+  Both
+}
+
+enum BusinessType {
+  Trading
+  Retailer
+  Miller
+  Processor
+  Importer
+  Exporter
+}
+
+enum AuctionStatus {
+  Pending
+  Open
+  Closed
+}
