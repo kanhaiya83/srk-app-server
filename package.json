@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/app.js",
+    "start": "prisma migrate deploy && node dist/app.js",
     "dev": "nodemon --watch src --ext ts --exec ts-node src/app.ts",
     "generate": "prisma generate",
     "migrate": "prisma migrate dev --name init",
@@ -48,5 +48,8 @@
     "node-cron": "^3.0.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
+  },
+  "engines": {
+    "node": "20.18.1"
   }
 }
