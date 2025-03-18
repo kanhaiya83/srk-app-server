@@ -40,6 +40,7 @@ const vendorController = new VendorController();
  *         description: Internal server error.
  */
 router.post('/login', vendorController.login);
+router.delete('/', vendorController.deleteAll);
 
 /**
  * @swagger
@@ -64,6 +65,30 @@ router.post('/login', vendorController.login);
  *         description: Internal server error.
  */
 router.post('/create', vendorController.create);
+
+/**
+ * @swagger
+ * /vendors/me:
+ *   get:
+ *     summary: Get the currently authenticated vendor's profile.
+ *     tags: [Vendors]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Vendor profile.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/VendorUser'
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: Vendor not found.
+ *       500:
+ *         description: Internal server error.
+ */
+router.get('/me', authenticateVendor, vendorController.me);
 
 /**
  * @swagger
@@ -110,31 +135,7 @@ router.get('/:id', authenticateVendor, vendorController.findOne);
  *       500:
  *         description: Internal server error.
  */
-router.get('/', authenticateVendor, vendorController.findAll);
-
-/**
- * @swagger
- * /vendors/me:
- *   get:
- *     summary: Get the currently authenticated vendor's profile.
- *     tags: [Vendors]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Vendor profile.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/VendorUser'
- *       401:
- *         description: Unauthorized.
- *       404:
- *         description: Vendor not found.
- *       500:
- *         description: Internal server error.
- */
-router.get('/me', authenticateVendor, vendorController.me);
+router.get('/', vendorController.findAll);
 
 /**
  * @swagger

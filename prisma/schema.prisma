@@ -32,6 +32,7 @@ model UnverifiedVendorUser {
 
 model VendorUser {
   id                    Int           @id @default(autoincrement())
+  firebase_uid          String
   company_name          String
   cin_number            String
   company_nature        CompanyNature
@@ -53,47 +54,93 @@ model VendorUser {
   referral_code         String?
   auctions_created      Auction[]     @relation("VendorAuctions")
   auctions_participated Auction[]     @relation("AuctionParticipants")
+  auctions_qualified    Auction[]     @relation("AuctionQualifiers")
+  auctions_won          Auction[]     @relation("AuctionWon")
   Bid                   Bid[]
+  ChatMembers           ChatRoom[]    @relation("ChatRoomMembers")
+  Messages              Message[]
 }
 
 model Auction {
-  id                 Int           @id @default(autoincrement())
-  commodity          String
-  grade              String
-  start_time         DateTime
-  tick_size          Float
-  bid_challenge_time Int
-  location           String
-  is_private         Boolean
-  auction_type       String
-  lot_count_quantity Int
-  initial_bid        Float
-  min_selling_price  Float
-  emd_amount         Float
-  warehouse          String
-  sample_request     Boolean
-  phase1_count       Int
-  entering_price     Float
-  last_bidding_time  DateTime?
-  auction_status     AuctionStatus @default(Pending)
-  min_notional_entry Float
+  id                           String        @id @default(uuid())
+  title                        String
+  description                  String?
+  commodity                    Commodity
+  grade                        String
+  auction_type                 AuctionType
+  is_private                   Boolean
+  is_two_rounds                Boolean
+  first_round_duration         Int
+  current_round                Int
+  first_round_bid_period       Int
+  first_round_qualifiers_count Int?
+  second_round_duration        Int?
+  second_round_bid_period      Int?
+  reminder_time_before_start   Int
+  joining_start_time           DateTime
+  start_time                   DateTime
+  second_round_start_time      DateTime
+  tick_size                    Float
+  expected_price               Float
+  initial_bid                  Float
+  quantity                     Float
+  measuring_unit               MeasuringUnit
+  location                     String
+  min_notional_entry           Float
+  auction_status               AuctionStatus @default(Pending)
 
-  bids Bid[]
-
-  creator      VendorUser   @relation("VendorAuctions", fields: [creatorId], references: [id])
-  creatorId    Int
-  participants VendorUser[] @relation("AuctionParticipants")
+  bids                         Bid[]
+  creator                      VendorUser   @relation("VendorAuctions", fields: [creatorId], references: [id])
+  creatorId                    Int
+  participants                 VendorUser[] @relation("AuctionParticipants")
+  first_round_qualifiers       VendorUser[] @relation("AuctionQualifiers")
+  winner                       VendorUser[] @relation("AuctionWon")
+  chatRoom                     ChatRoom?
 }
 
 model Bid {
   id        Int      @id @default(autoincrement())
-  auctionId Int
+  auctionId String
   vendorId  Int
   amount    Float
   timestamp DateTime @default(now())
 
   auction Auction    @relation(fields: [auctionId], references: [id])
   vendor  VendorUser @relation(fields: [vendorId], references: [id])
+}
+
+model ChatRoom {
+  id        Int         @id @default(autoincrement())
+  auction   Auction     @relation(fields: [auctionId], references: [id])
+  auctionId String      @unique
+  members   VendorUser[] @relation("ChatRoomMembers")
+  messages  Message[]
+}
+
+model Message {
+  id        Int        @id @default(autoincrement())
+  chatRoom  ChatRoom   @relation(fields: [chatRoomId], references: [id])
+  chatRoomId Int
+  vendor    VendorUser @relation(fields: [vendorId], references: [id])
+  vendorId  Int
+  text      String
+  timestamp DateTime   @default(now())
+}
+
+enum MeasuringUnit {
+  KGS
+  QUINTLES
+  TONNES
+}
+
+enum Commodity {
+  JEERA
+  DHANIYA
+}
+
+enum AuctionType {
+  FORWARD
+  BACKWARD
 }
 
 enum CompanyNature {

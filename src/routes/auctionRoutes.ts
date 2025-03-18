@@ -553,4 +553,5 @@ router.post('/:id/leave', authenticateVendor, auctionController.leaveAuction);
  *         description: Internal server error.
  */
 router.post('/:id/bid', authenticateVendor, auctionController.bidOnAuction);
+router.post('/:id/bid/test', auctionController.bidOnAuctionTest);
 export default router;

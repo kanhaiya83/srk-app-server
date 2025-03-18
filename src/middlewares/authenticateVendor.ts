@@ -4,9 +4,9 @@ import * as jwt from 'jsonwebtoken';
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 export const authenticateVendor = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const authHeader = req.headers["authorization"];
+  console.log({authHeader})
+  if (!authHeader || typeof authHeader != "string" || !authHeader.startsWith('Bearer ')) {
     res.status(401).json({ error: 'Unauthorized: Missing or invalid token' });
     return
   }
@@ -15,6 +15,7 @@ export const authenticateVendor = (req: Request, res: Response, next: NextFuncti
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { vendorId: number };
+    // @ts-expect-error vendor
     req.vendorId = decoded.vendorId; // Attach vendorId to the request object
     next();
   } catch (error) {
@@ -25,10 +26,10 @@ export const authenticateVendor = (req: Request, res: Response, next: NextFuncti
 };
 
 // Add vendorId to Request interface
-declare global {
-  namespace Express {
-    interface Request {
-      vendorId?: number;
-    }
-  }
-}
+// declare global {
+//   namespace Express {
+//     interface Request {
+//       vendorId?: number;
+//     }
+//   }
+// }
