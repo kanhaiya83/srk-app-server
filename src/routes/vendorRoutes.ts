@@ -164,7 +164,7 @@ router.get('/', vendorController.findAll);
  *       500:
  *         description: Internal server error.
  */
-router.put('/', authenticateVendor, vendorController.update);
+router.put('/', vendorController.update);
 
 /**
  * @swagger

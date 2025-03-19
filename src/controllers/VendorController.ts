@@ -224,8 +224,7 @@ export class VendorController {
 
   async update(req: Request, res: Response) {
     try {
-      // @ts-expect-error eewf
-      const vendorId = req.vendorId;
+      const vendorId = req.body.id;
       const vendorData: Partial<VendorUser> = req.body;
 
       if (!vendorId) {
