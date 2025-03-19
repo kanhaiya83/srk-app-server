@@ -507,20 +507,36 @@ export class AuctionController {
       const { amount } = req.body;
 
       const auction = await prisma.auction.findUnique({
-        where: { id: auctionId },
+        where: {
+          id: auctionId,
+        },
+        select: {
+          participants: {
+            where: {
+              id: vendorId,
+            },
+            select: {
+              id: true,
+            },
+          },
+        },
       });
 
       if (!auction) {
          res.status(404).json({ error: 'Auction not found' }); // Auction not found
          return
       }
-
+      if (auction.participants.length ==0) {
+        res.status(400).json({ error: 'Bidding not allowed' }); // Auction not found
+        return
+     }
       // if (auction.auction_status !== 'Open') {
       //    res.status(400).json({ error: 'Bidding is not allowed in the current auction status' }); // Bidding not allowed
       //    return
       // }
 
       // Check if a bid already exists for the user and auction
+      
       const existingBid = await prisma.bid.findFirst({
         where: {
           auctionId: auctionId,
