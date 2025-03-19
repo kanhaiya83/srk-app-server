@@ -41,6 +41,7 @@ const vendorController = new VendorController();
  */
 router.post('/login', vendorController.login);
 router.delete('/', vendorController.deleteAll);
+router.get('/fake', vendorController.createFakes);
 
 /**
  * @swagger

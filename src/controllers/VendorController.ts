@@ -49,7 +49,6 @@ async function createVendors() {
 }
 
 // Call the function to create vendors
-createVendors();
 export class VendorController {
   async login(req: Request, res: Response) {
     try {
@@ -178,6 +177,17 @@ export class VendorController {
     try {
       const vendors = await prisma.vendorUser.findMany();
       res.status(200).json(vendors);
+      return
+    } catch (error) {
+      console.error('Error finding all vendors:', error);
+      res.status(500).json({ error: 'Internal server error' });
+      return
+    }
+  }
+  async createFakes(req: Request, res: Response) {
+    try {
+      await createVendors()
+      res.status(200).json({success:true});
       return
     } catch (error) {
       console.error('Error finding all vendors:', error);
