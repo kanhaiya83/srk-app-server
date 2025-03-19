@@ -393,9 +393,13 @@ export class AuctionController {
       }
 
       if (auction.creatorId === vendorId) {
-         res.status(400).json({ error: 'You cannot participate in your own auction' }); // Cannot participate in own auction
-         return
-      }
+        res.status(400).json({ error: 'You cannot participate in your own auction' }); // Cannot participate in own auction
+        return
+     }
+     if (new Date().getTime() >new Date(auction.start_time).getTime()) {
+        res.status(400).json({ error: 'Auction has started' }); // Cannot participate in own auction
+        return
+     }
 
       const vendor = await prisma.vendorUser.findUnique({
         where: { id: vendorId },
