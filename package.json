@@ -8,7 +8,7 @@
     "start": "prisma migrate deploy && node dist/app.js",
     "dev": "nodemon --watch src --ext ts --exec ts-node src/app.ts",
     "generate": "prisma generate",
-    "migrate": "prisma migrate dev --name init",
+    "reset": "prisma generate && prisma db push --force-reset",
     "format": "prettier --write .",
     "lint": "eslint . ",
     "lint:fix": "eslint . --fix ",

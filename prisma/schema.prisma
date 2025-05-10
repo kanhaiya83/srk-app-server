@@ -14,7 +14,6 @@ generator client {
 enum RoleType {
   seller
   buyer
-  apmc_admin
 }
 
 enum MeasuringUnit {
@@ -40,11 +39,6 @@ enum CompanyNature {
   Proprietorship
 }
 
-enum VendorRole {
-  Buyer
-  Seller
-  Both
-}
 
 enum BusinessType {
   Trading
@@ -70,6 +64,7 @@ model User {
   first_name       String
   last_name        String
   mobile_number    String
+  notional_amount  Float
   roles            Role[]
   auctions_created Auction[]    @relation("UserAuctions")
   bids             Bid[]
@@ -91,26 +86,40 @@ model Role {
   user_id         String
   user            User     @relation(fields: [user_id], references: [id])
 }
+model Admin {
+  id              String   @id @default(uuid())
+  mobile_number   String
+}
 
 model Location {
   id     String @id @default(uuid())
   title  String
   apmcs  APMC[]
 }
+model APMCAdmin {
+  id            String   @id @default(uuid())
+  name          String
+  mobile_number String
+  apmcs         APMC[]   @relation("APMCAdminRelation")
+}
 
 model APMC {
-  id          String  @id @default(uuid())
-  location_id String
-  location    Location @relation(fields: [location_id], references: [id])
-  users       Role[]
-  shops       Shop[]
+  id            String      @id @default(uuid())
+  location_id   String
+  location      Location    @relation(fields: [location_id], references: [id])
+  users         Role[]
+  shops         Shop[]
+  admins        APMCAdmin[] @relation("APMCAdminRelation")
 }
+
 
 model Shop {
   id      String @id @default(uuid())
   name    String
   apmc_id String
   apmc    APMC   @relation(fields: [apmc_id], references: [id])
+  slots_eligible_for Slot[] @relation("EligibleShops")
+  slots_participated_in Slot[] @relation("ParticipatedShops")
 }
 
 // ============================
@@ -184,3 +193,14 @@ model Message {
   chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
   vendor     User     @relation(fields: [vendorId], references: [id])
 }
+
+model Slot {
+  id                 String     @id @default(uuid())
+  start_time         DateTime
+  end_time           DateTime
+  shops_eligible     Shop[]     @relation("EligibleShops")
+  shops_participated Shop[]     @relation("ParticipatedShops")
+  participate_before DateTime
+}
+
+
