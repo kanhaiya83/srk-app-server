@@ -401,7 +401,7 @@ export class AuctionController {
         return
      }
 
-      const vendor = await prisma.vendorUser.findUnique({
+      const vendor = await prisma.user.findUnique({
         where: { id: vendorId },
       });
 
@@ -429,7 +429,7 @@ export class AuctionController {
             },
           },
         }),
-        prisma.vendorUser.update({
+        prisma.user.update({
           where: { id: vendorId },
           data: {
             notional_amount: {
@@ -480,7 +480,7 @@ export class AuctionController {
             },
           },
         }),
-        prisma.vendorUser.update({
+        prisma.user.update({
           where: { id: vendorId },
           data: {
             notional_amount: {
@@ -595,7 +595,7 @@ export class AuctionController {
             },
           },
         }),
-        prisma.vendorUser.update({
+        prisma.user.update({
           where: { id: vendorId },
           data: {
             notional_amount: {
