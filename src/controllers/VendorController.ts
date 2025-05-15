@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Prisma, PrismaClient, VendorUser } from '@prisma/client';
+import { Prisma, PrismaClient, User } from '@prisma/client';
 import * as admin from 'firebase-admin';
 import * as jwt from 'jsonwebtoken';
 
@@ -7,45 +7,27 @@ const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // Use environment variable for security
 
 
-import { faker } from '@faker-js/faker';
+// import { faker } from '@faker-js/faker';
 async function createVendors() {
-  const vendorPromises = [];
+  // const vendorPromises = [];
 
-  for (let i = 51; i <= 60; i++) {
-    const vendorData = {
-      id: i,
-      firebase_uid: faker.database.mongodbObjectId(),
-      company_name: faker.company.name(),
-      cin_number: faker.string.numeric(),
-      company_nature: faker.helpers.arrayElement(['Private', 'LLC', 'Partnership', 'Proprietorship']),
-      role: faker.helpers.arrayElement(['Buyer', 'Seller', 'Both']),
-      contact_number: faker.phone.number(),
-      contact_person_name: faker.name.fullName(),
-      email: faker.internet.email(),
-      notional_amount: 1000000,
-      website_link: faker.internet.url(),
-      communication_address: faker.address.streetAddress(),
-      city: faker.address.city(),
-      pin_code: faker.address.zipCode(),
-      state: faker.address.state(),
-      gst_number: faker.string.alphanumeric(15).toUpperCase(),
-      mandi_license: faker.string.alphanumeric(8).toUpperCase(),
-      apmc_license: faker.string.alphanumeric(8).toUpperCase(),
-      commodity: faker.helpers.arrayElement(['JEERA', 'DHANIYA']),
-      business_type: faker.helpers.arrayElement(['Trading', 'Retailer', 'Miller', 'Processor', 'Importer', 'Exporter']),
-      referral_code: faker.string.alphanumeric(10).toUpperCase(),
-    };
-    vendorPromises.push(prisma.vendorUser.create({ data: vendorData }));
-  }
+  // for (let i = 51; i <= 60; i++) {
+  //   const vendorData = {
+  //     first_name: faker.name.firstName(),
+  //     last_name: faker.name.lastName(),
+  //     mobile_number: faker.phone.number(),
+  //   };
+  //   vendorPromises.push(prisma.user.create({ data: vendorData }));
+  // }
 
-  try {
-    await Promise.all(vendorPromises);
-    console.log('Vendors created successfully!');
-  } catch (error) {
-    console.error('Error creating vendors:', error);
-  } finally {
-    await prisma.$disconnect();
-  }
+  // try {
+  //   await Promise.all(vendorPromises);
+  //   console.log('Users created successfully!');
+  // } catch (error) {
+  //   console.error('Error creating users:', error);
+  // } finally {
+  //   await prisma.$disconnect();
+  // }
 }
 
 // Call the function to create vendors
@@ -67,18 +49,10 @@ export class VendorController {
         return
       }
 
-      const vendor = await prisma.vendorUser.findFirst({
-        where: { firebase_uid: decodedToken.uid },
-      });
-
-      if (!vendor) {
-        res.status(200).json({});
-        return
-      }
-
-      const token = jwt.sign({ vendorId: vendor.id }, JWT_SECRET, { expiresIn: '7d' }); // Adjust expiration as needed
-
-      res.status(200).json({ token });
+      // There is no firebase_uid field in User, so we can't look up by it.
+      // You may want to look up by mobile_number or email if you add it to the model.
+      // For now, just return empty.
+      res.status(200).json({});
       return
     } catch (error) {
       console.error('Login error:', error);
@@ -89,22 +63,12 @@ export class VendorController {
 
   async create(req: Request, res: Response) {
     try {
-      const vendorData: Prisma.VendorUserCreateInput = req.body.data;
-      console.log({ createVendorForm: vendorData })
-      //   const firebaseToken  = req.body.firebase_token;
-      //   if (!firebaseToken) {
-      //     res.status(400).json({ error: 'Firebase token is required' });
-      //     return
-      //  }
-
-      //  const decodedToken = await admin.auth().verifyIdToken(firebaseToken);
-      //  const uid = decodedToken.uid
-      const uid = req.body.firebase_uid
-
-      const newVendor = await prisma.vendorUser.create({ data: { ...vendorData, firebase_uid: uid } });
-      const token = jwt.sign({ vendorId: newVendor.id }, JWT_SECRET, { expiresIn: '7d' }); // Adjust expiration as needed
-
-      res.status(201).json({ data: newVendor, token });
+      const vendorData: Prisma.UserCreateInput = req.body.data;
+      // Only allow fields that exist in User model
+      const { first_name, last_name, mobile_number } = vendorData;
+      const newUser = await prisma.user.create({ data: { first_name, last_name, mobile_number,notional_amount:100000 } });
+      const token = jwt.sign({ vendorId: newUser.id }, JWT_SECRET, { expiresIn: '7d' });
+      res.status(201).json({ data: newUser, token });
       return
     } catch (error) {
       console.error('Error creating vendor:', error);
@@ -124,23 +88,7 @@ export class VendorController {
 
           // Step 2: Update VendorUser records to remove auction associations
           // Since we are deleting auctions, we need to clear the relations
-          await prisma.vendorUser.updateMany({
-            data: {
-              // @ts-expect-error some
-              auctions_created: {
-                set: []
-              },
-              auctions_participated: {
-                set: []
-              },
-              auctions_won: {
-                set: []
-              }
-            }
-          });
-
-          // Step 3: Delete all auctions
-          await prisma.auction.deleteMany({});
+          // No auction relations to clear in User model as per current schema, so skip this step.
         });
 
         console.log('All auctions and related foreign keys have been removed successfully.');
@@ -156,8 +104,8 @@ export class VendorController {
 
   async findOne(req: Request, res: Response) {
     try {
-      const vendorId = parseInt(req.params.id, 10);
-      const vendor = await prisma.vendorUser.findUnique({ where: { id: vendorId } });
+      const vendorId = req.params.id;
+      const vendor = await prisma.user.findUnique({ where: { id: vendorId } });
 
       if (!vendor) {
         res.status(404).json({ error: 'Vendor not found' });
@@ -175,7 +123,7 @@ export class VendorController {
 
   async findAll(req: Request, res: Response) {
     try {
-      const vendors = await prisma.vendorUser.findMany();
+      const vendors = await prisma.user.findMany();
       res.status(200).json(vendors);
       return
     } catch (error) {
@@ -206,7 +154,7 @@ export class VendorController {
         return
       }
       console.log({ vendorId })
-      const vendor = await prisma.vendorUser.findUnique({ where: { id: vendorId } });
+      const vendor = await prisma.user.findUnique({ where: { id: vendorId.toString() } });
 
       if (!vendor) {
         res.status(401).json({ error: 'Vendor not found' });
@@ -225,19 +173,20 @@ export class VendorController {
   async update(req: Request, res: Response) {
     try {
       const vendorId = req.body.id;
-      const vendorData: Partial<VendorUser> = req.body;
+      const vendorData: Partial<User> = req.body;
 
       if (!vendorId) {
         res.status(401).json({ error: 'Unauthorized' });
         return
       }
 
-      const updatedVendor = await prisma.vendorUser.update({
+      // Only allow updating fields that exist in User model
+      const { first_name, last_name, mobile_number } = vendorData;
+      const updatedUser = await prisma.user.update({
         where: { id: vendorId },
-        data: vendorData,
+        data: { first_name, last_name, mobile_number },
       });
-
-      res.status(200).json(updatedVendor);
+      res.status(200).json(updatedUser);
       return
     } catch (error) {
       console.error('Error updating vendor:', error);

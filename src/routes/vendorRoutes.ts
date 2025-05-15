@@ -54,14 +54,14 @@ router.get('/fake', vendorController.createFakes);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UnverifiedVendorUser'
+ *             $ref: '#/components/schemas/User'
  *     responses:
  *       201:
  *         description: Unverified vendor created successfully.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/UnverifiedVendorUser'
+ *               $ref: '#/components/schemas/User'
  *       500:
  *         description: Internal server error.
  */
@@ -81,7 +81,7 @@ router.post('/create', vendorController.create);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/VendorUser'
+ *               $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized.
  *       404:
@@ -110,7 +110,7 @@ router.get('/me', authenticateVendor, vendorController.me);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/VendorUser'
+ *               $ref: '#/components/schemas/User'
  *       404:
  *         description: Vendor not found.
  *       500:
@@ -132,7 +132,7 @@ router.get('/:id', authenticateVendor, vendorController.findOne);
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/VendorUser'
+ *                 $ref: '#/components/schemas/User'
  *       500:
  *         description: Internal server error.
  */
@@ -151,14 +151,14 @@ router.get('/', vendorController.findAll);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/VendorUser'
+ *             $ref: '#/components/schemas/User'
  *     responses:
  *       200:
  *         description: Vendor updated successfully.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/VendorUser'
+ *               $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized.
  *       500:
@@ -170,149 +170,22 @@ router.put('/', vendorController.update);
  * @swagger
  * components:
  *   schemas:
- *     UnverifiedVendorUser:
+ *     User:
  *       type: object
  *       properties:
  *         id:
- *           type: integer
+ *           type: string
  *           readOnly: true
- *         company_name:
+ *         first_name:
  *           type: string
- *         cin_number:
+ *         last_name:
  *           type: string
- *         company_nature:
- *           $ref: '#/components/schemas/CompanyNature'
- *         role:
- *           $ref: '#/components/schemas/VendorRole'
- *         contact_number:
+ *         mobile_number:
  *           type: string
- *         contact_person_name:
- *           type: string
- *         email:
- *           type: string
- *           unique: true
- *         notional_amount:
- *           type: number
- *         website_link:
- *           type: string
- *           nullable: true
- *         communication_address:
- *           type: string
- *         city:
- *           type: string
- *         pin_code:
- *           type: string
- *         state:
- *           type: string
- *         gst_number:
- *           type: string
- *           nullable: true
- *         mandi_license:
- *           type: string
- *           nullable: true
- *         apmc_license:
- *           type: string
- *           nullable: true
- *         commodity:
- *           type: string
- *           nullable: true
- *         business_type:
- *           $ref: '#/components/schemas/BusinessType'
- *         referral_code:
- *           type: string
- *           nullable: true
  *       required:
- *         - company_name
- *         - cin_number
- *         - company_nature
- *         - role
- *         - contact_number
- *         - contact_person_name
- *         - email
- *         - notional_amount
- *         - communication_address
- *         - city
- *         - pin_code
- *         - state
- *         - business_type
- * 
- *     VendorUser:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           readOnly: true
- *         company_name:
- *           type: string
- *         cin_number:
- *           type: string
- *         company_nature:
- *           $ref: '#/components/schemas/CompanyNature'
- *         role:
- *           $ref: '#/components/schemas/VendorRole'
- *         contact_number:
- *           type: string
- *         contact_person_name:
- *           type: string
- *         email:
- *           type: string
- *           unique: true
- *         notional_amount:
- *           type: number
- *         website_link:
- *           type: string
- *           nullable: true
- *         communication_address:
- *           type: string
- *         city:
- *           type: string
- *         pin_code:
- *           type: string
- *         state:
- *           type: string
- *         gst_number:
- *           type: string
- *           nullable: true
- *         mandi_license:
- *           type: string
- *           nullable: true
- *         apmc_license:
- *           type: string
- *           nullable: true
- *         commodity:
- *           type: string
- *           nullable: true
- *         business_type:
- *           $ref: '#/components/schemas/BusinessType'
- *         referral_code:
- *           type: string
- *           nullable: true
- *       required:
- *         - company_name
- *         - cin_number
- *         - company_nature
- *         - role
- *         - contact_number
- *         - contact_person_name
- *         - email
- *         - notional_amount
- *         - communication_address
- *         - city
- *         - pin_code
- *         - state
- *         - business_type
- *
- *     CompanyNature:
- *       type: string
- *       enum: [Private, LLC, Partnership, Proprietorship]
- *
- *     VendorRole:
- *       type: string
- *       enum: [Buyer, Seller, Both]
- *
- *     BusinessType:
- *       type: string
- *       enum: [Trading, Retailer, Miller, Processor, Importer, Exporter]
+ *         - first_name
+ *         - last_name
+ *         - mobile_number
  *
  *   securitySchemes:
  *     bearerAuth:
