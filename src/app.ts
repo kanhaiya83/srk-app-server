@@ -1,15 +1,14 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
 import swaggerUi from 'swagger-ui-express'
 import swaggerJsDoc from 'swagger-jsdoc'
 import vendorRouter from './routes/vendorRoutes';
 import auctionRouter from './routes/auctionRoutes';
 import "./config/firebase"
 import cors from "cors"
+import APMCRoutes from './routes/APMCRoutes';
 const app = express();
 app.use(cors())
 app.use(express.json())
-const prisma = new PrismaClient();
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -35,6 +34,7 @@ setupSwagger()
 app.use(express.json());
 app.use("/vendors",vendorRouter)
 app.use("/auctions",auctionRouter)
+app.use("/apmcadmin",APMCRoutes)
 app.get('/', (req, res) => {
   res.send('Hello, World!');
 });

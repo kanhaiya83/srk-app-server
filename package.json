@@ -9,6 +9,7 @@
     "dev": "nodemon --watch src --ext ts --exec ts-node src/app.ts",
     "generate": "prisma generate",
     "reset": "prisma generate && prisma db push --force-reset",
+    "data": "npm run reset && ts-node src/utils/demoData.ts",
     "format": "prettier --write .",
     "lint": "eslint . ",
     "lint:fix": "eslint . --fix ",

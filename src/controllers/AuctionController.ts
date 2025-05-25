@@ -92,7 +92,7 @@ async function qualifyTopBidders(auctionId: string, qualifiersCount: number): Pr
 
   // Sort bids by amount descending
   const sortedBids = auction.bids.sort((a, b) => b.amount - a.amount);
-  const topBidders = sortedBids.slice(0, qualifiersCount).map(bid => bid.vendorId);
+  const topBidders = sortedBids.slice(0, qualifiersCount).map(bid => bid.userId);
 
   // Update auction status to second round and set qualifiers
   await prisma.auction.update({
@@ -128,7 +128,7 @@ async function closeAuction(auctionId: string): Promise<void> {
     where: { id: auctionId },
     data: {
       auction_status: AuctionStatus.Closed,
-      winner: topBid ? { connect: { id: topBid.vendorId } } : undefined,
+      winner: topBid ? { connect: { id: topBid.userId } } : undefined,
     }
   });
 }
@@ -540,7 +540,7 @@ export class AuctionController {
       const existingBid = await prisma.bid.findFirst({
         where: {
           auctionId: auctionId,
-          vendorId: vendorId,
+          userId: vendorId,
         },
       });
 
@@ -559,7 +559,7 @@ export class AuctionController {
           data: {
             amount,
             auction: { connect: { id: auctionId } },
-            vendor: { connect: { id: vendorId } },
+            user: { connect: { id: vendorId } },
           },
         });
 
@@ -619,7 +619,7 @@ export class AuctionController {
       const existingBid = await prisma.bid.findFirst({
         where: {
           auctionId: auctionId,
-          vendorId: vendorId,
+          userId: vendorId,
         },
       });
 
@@ -638,7 +638,7 @@ export class AuctionController {
           data: {
             amount,
             auction: { connect: { id: auctionId } },
-            vendor: { connect: { id: vendorId } },
+            user: { connect: { id: vendorId } },
           },
         });
 

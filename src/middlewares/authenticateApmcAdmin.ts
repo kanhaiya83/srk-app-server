@@ -1,9 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import admin from 'firebase-admin';
-
+import * as jwt from 'jsonwebtoken';
 interface AuthenticatedRequest extends Request {
   userId?: string;
+  phone_number?: string;
+  role?: string;
 }
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 export const authenticateApmcAdmin = async (
   req: AuthenticatedRequest,
@@ -14,20 +16,22 @@ export const authenticateApmcAdmin = async (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No token provided' });
+       res.status(401).json({ error: 'No token provided' });
+       return
     }
 
     const token = authHeader.split(' ')[1];
-    const decodedToken = await admin.auth().verifyIdToken(token);
+    const decoded = jwt.verify(token, JWT_SECRET) as { phone_number: string, uid: string, role: string };
     
-    if (!decodedToken.phone_number) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
+    
 
-    req.userId = decodedToken.uid;
+    req.userId = decoded.uid;
+    req.phone_number = decoded.phone_number;
+    req.role = decoded.role;
     next();
   } catch (error) {
     console.error('Authentication error:', error);
-    return res.status(401).json({ error: 'Invalid token' });
+     res.status(401).json({ error: 'Invalid token' });
+     return
   }
 }; 
