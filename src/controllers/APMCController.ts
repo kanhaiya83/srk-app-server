@@ -349,13 +349,23 @@ export class APMCController {
         return res.status(400).json({ error: 'APMC ID is required' });
       }
 
-      const targetDay = new Date(day 
-        ? new Date(parseInt(day as string)).setHours(0,0,0,0)
-        : new Date().setHours(0,0,0,0));
+      const targetDay = day ? new Date(parseInt(day as string)) : new Date();
+      targetDay.setHours(0,0,0,0)
+      
+      // Create start date (one day before) and end date (one day after)
+      const startDate = new Date(targetDay);
+      startDate.setDate(startDate.getDate() - 1);
+      
+      const endDate = new Date(targetDay);
+      endDate.setDate(endDate.getDate() + 1);
+
       const slots = await prisma.slot.findMany({
         where: {
           apmc_id: apmc_id,
-          day: new Date(targetDay),
+          day: {
+            gte: startDate,
+            lte: endDate
+          },
           ...(commodity_id ? { commodity_id: commodity_id as string } : {})
         },
         include: {
