@@ -27,8 +27,17 @@ export async function seedAPMCData() {
     const apmcAdmins = await Promise.all([
       prisma.aPMCAdmin.create({
         data: {
-          name: 'Rajesh Patel',
-          mobile_number: '2209033423',
+          id:"fdc6afbe-af8c-4c3f-8ace-31453349d645",
+          name: 'Shyam Jaju',
+          mobile_number: '+919828527448',
+        },
+      }),
+
+      prisma.aPMCAdmin.create({
+        data: {
+          id:"fdc6afbe-af8c-4c3f-8ace-313cty69d675",
+          name: 'Sourabh',
+          mobile_number: '+919766132327',
         },
       }),
       prisma.aPMCAdmin.create({
@@ -40,9 +49,6 @@ export async function seedAPMCData() {
       }),
     ]);
 
-    // Create APMCs and connect them with locations and admins
-    // First APMC with first admin
-    // Second and Third APMC with second admin
     const apmcs = await Promise.all([
       prisma.aPMC.create({
         data: {
@@ -51,7 +57,7 @@ export async function seedAPMCData() {
             connect: { id: locations[0].id },
           },
           admins: {
-            connect: [{ id: apmcAdmins[1].id }],
+            connect: [{ id: apmcAdmins[2].id },{ id: apmcAdmins[0].id },{ id: apmcAdmins[1].id }],
           },
         },
       }),
@@ -63,7 +69,7 @@ export async function seedAPMCData() {
             connect: { id: locations[1].id },
           },
           admins: {
-            connect: [{ id: apmcAdmins[1].id }],
+            connect: [{ id: apmcAdmins[2].id },{ id: apmcAdmins[1].id }],
           },
         },
       }),
@@ -74,7 +80,7 @@ export async function seedAPMCData() {
             connect: { id: locations[2].id },
           },
           admins: {
-            connect: [{ id: apmcAdmins[1].id }],
+            connect: [{ id: apmcAdmins[2].id },{ id: apmcAdmins[0].id }],
           },
         },
       }),
