@@ -88,6 +88,8 @@ model Role {
 model Admin {
   id              String   @id @default(uuid())
   mobile_number   String
+  username        String
+  password        String
 }
 
 model Location {

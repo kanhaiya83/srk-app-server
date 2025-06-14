@@ -1,5 +1,5 @@
 import { PrismaClient, RoleType } from '@prisma/client';
-
+import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 export async function seedAPMCData() {
@@ -295,12 +295,21 @@ async function seedShopsAndSlots() {
     throw error;
   }
 }
-
+async function seedAdmin(){
+  await prisma.admin.create({
+    data: {
+      username: "admin",
+      password: bcrypt.hashSync("admin", 10),
+      mobile_number: "+919828527448",
+    }
+  })
+}
 // Modify the main execution to run all seeding functions
 async function seedAllData() {
   await seedCommodities();
   await seedAPMCData();
   await seedShopsAndSlots();
+  await seedAdmin();
 }
 
 seedAllData();
