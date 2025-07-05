@@ -27,19 +27,19 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000', // Replace with your server URL
+        url: 'http://localhost:5000', // Replace with your server URL
       },
     ],
   },
   apis: ['./src/routes/*.js','./src/routes/*.ts','./src/controllers/*.js','./src/controllers/*.ts'], // Path to the API docs
 };
 
-const swaggerSpec = swaggerJsDoc(options);
-const setupSwagger = () => {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-  logger.info('Swagger docs available at /api-docs');
-};
-setupSwagger()
+// const swaggerSpec = swaggerJsDoc(options);
+// const setupSwagger = () => {
+//   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+//   logger.info('Swagger docs available at /api-docs');
+// };
+// setupSwagger()
 
 // Routes
 app.use("/vendors",vendorRouter)

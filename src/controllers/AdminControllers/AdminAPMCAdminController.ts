@@ -13,7 +13,22 @@ export class AdminAPMCAdminController {
       const { name, mobile_number } = req.body;
 
       const apmcAdmin = await prisma.aPMCAdmin.create({
-        data: { name, mobile_number }
+        data: { name, mobile_number },
+        include: {
+          apmcs: {
+            include: {
+              location: true,
+              users: true,
+              shops: true,
+              slots: true,
+              commodities: {
+                include: {
+                  commodity: true
+                }
+              }
+            }
+          }
+        }
       });
 
       return res.status(201).json(apmcAdmin);
@@ -31,7 +46,22 @@ export class AdminAPMCAdminController {
 
       const apmcAdmin = await prisma.aPMCAdmin.update({
         where: { id },
-        data: { name, mobile_number }
+        data: { name, mobile_number },
+        include: {
+          apmcs: {
+            include: {
+              location: true,
+              users: true,
+              shops: true,
+              slots: true,
+              commodities: {
+                include: {
+                  commodity: true
+                }
+              }
+            }
+          }
+        }
       });
 
       return res.json(apmcAdmin);
@@ -46,6 +76,17 @@ export class AdminAPMCAdminController {
     try {
       const { id } = req.params;
 
+      // First disconnect from all APMCs
+      await prisma.aPMCAdmin.update({
+        where: { id },
+        data: {
+          apmcs: {
+            set: [] // Clear all APMC relationships
+          }
+        }
+      });
+
+      // Then delete the admin
       await prisma.aPMCAdmin.delete({
         where: { id }
       });
@@ -60,7 +101,23 @@ export class AdminAPMCAdminController {
 
   static async getAll(req: AuthenticatedRequest, res: Response) {
     try {
-      const apmcAdmins = await prisma.aPMCAdmin.findMany();
+      const apmcAdmins = await prisma.aPMCAdmin.findMany({
+        include: {
+          apmcs: {
+            include: {
+              location: true,
+              users: true,
+              shops: true,
+              slots: true,
+              commodities: {
+                include: {
+                  commodity: true
+                }
+              }
+            }
+          }
+        }
+      });
       return res.json(apmcAdmins);
 
     } catch (error) {

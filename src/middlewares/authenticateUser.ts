@@ -3,7 +3,7 @@ import * as jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
-export const authenticateVendor = (req: Request, res: Response, next: NextFunction) => {
+export const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers["authorization"];
   console.log({authHeader})
   if (!authHeader || typeof authHeader != "string" || !authHeader.startsWith('Bearer ')) {
@@ -16,7 +16,7 @@ export const authenticateVendor = (req: Request, res: Response, next: NextFuncti
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { vendorId: number };
     // @ts-expect-error vendor
-    req.vendorId = decoded.vendorId; // Attach vendorId to the request object
+    req.userId = decoded.userId; 
     next();
   } catch (error) {
     console.error('JWT verification error:', error);
@@ -25,11 +25,11 @@ export const authenticateVendor = (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// Add vendorId to Request interface
-// declare global {
-//   namespace Express {
-//     interface Request {
-//       vendorId?: number;
-//     }
-//   }
-// }
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request {
+      userId?: string;
+    }
+  }
+}

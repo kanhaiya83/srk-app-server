@@ -63,7 +63,7 @@ model User {
   mobile_number    String
   notional_amount  Float
   is_verified      Boolean      @default(false)
-  is_banned      Boolean      @default(false)
+  is_banned        Boolean      @default(false)
   roles            Role[]
   auctions_created Auction[]    @relation("UserAuctions")
   bids             Bid[]
@@ -72,6 +72,7 @@ model User {
   auctionParticipation Auction[] @relation("AuctionParticipants")
   auctionQualifiedIn Auction[]  @relation("AuctionQualifiers")
   auctionWon        Auction[]   @relation("AuctionWon")
+  organizationUsers OrganizationUser[]
 }
 
 model Role {
@@ -228,6 +229,39 @@ model Slot {
   apmc    APMC   @relation(fields: [apmc_id], references: [id])
   commodity_id String
   commodity   Commodity @relation(fields: [commodity_id], references: [id])
+}
+
+model Organization {
+  id          String             @id @default(uuid())
+  name        String
+  users       OrganizationUser[]
+  businesses  Business[]
+  created_at  DateTime           @default(now())
+  updated_at  DateTime           @updatedAt
+}
+
+model OrganizationUser {
+  id              String       @id @default(uuid())
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  organizationId  String
+  user            User        @relation(fields: [userId], references: [id])
+  userId          String
+
+  @@unique([organizationId, userId])
+}
+
+model Business {
+  id                           String       @id @default(uuid())
+  mandi_license_number         String
+  gst_number                   String
+  mandi_license_certificate    String       // URL for the certificate photo
+  gst_certificate             String       // URL for the GST certificate photo
+  is_verified                 Boolean      @default(false)
+  organization_id             String
+  organization                Organization @relation(fields: [organization_id], references: [id])
+  business_type               BusinessType
+  created_at                  DateTime     @default(now())
+  updated_at                  DateTime     @updatedAt
 }
 
 

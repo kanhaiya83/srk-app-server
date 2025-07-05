@@ -46,6 +46,23 @@ export class AdminCommodityController {
     try {
       const { id } = req.params;
 
+      // First delete all relationships in APMCs and Shops
+      await prisma.commodity.update({
+        where: { id },
+        data: {
+          apmcs: {
+            deleteMany: {} // Delete all APMC commodity relationships
+          },
+          shops: {
+            deleteMany: {} // Delete all Shop commodity relationships
+          },
+          slots: {
+            deleteMany: {} // Delete all Slot relationships
+          }
+        }
+      });
+
+      // Then delete the commodity
       await prisma.commodity.delete({
         where: { id }
       });

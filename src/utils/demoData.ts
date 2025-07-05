@@ -1,6 +1,86 @@
-import { PrismaClient, RoleType } from '@prisma/client';
+import { PrismaClient, RoleType, BusinessType } from '@prisma/client';
 import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
+
+async function seedOrganizationsAndBusinesses(users: any[]) {
+  try {
+    // Create some organizations
+    const organizations = await Promise.all([
+      prisma.organization.create({
+        data: {
+          name: "Agro Traders Ltd",
+        }
+      }),
+      prisma.organization.create({
+        data: {
+          name: "Farm Fresh Exports",
+        }
+      }),
+      prisma.organization.create({
+        data: {
+          name: "Green Valley Processors",
+        }
+      })
+    ]);
+
+    const businessTypes = [
+      BusinessType.Trading,
+      BusinessType.Retailer,
+      BusinessType.Miller,
+      BusinessType.Processor,
+      BusinessType.Importer,
+      BusinessType.Exporter
+    ];
+
+    // For each organization, create businesses and connect random users
+    for (const org of organizations) {
+      // Create 2-4 businesses for each organization
+      const numBusinesses = Math.floor(Math.random() * 3) + 2;
+      
+      for (let i = 0; i < numBusinesses; i++) {
+        await prisma.business.create({
+          data: {
+            mandi_license_number: `ML${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+            gst_number: `GST${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+            mandi_license_certificate: `https://picsum.photos/seed/mandi_${i}/1200/800`,
+            gst_certificate: `https://picsum.photos/seed/gst_${i}/1200/800`,
+            is_verified: Math.random() > 0.3, // 70% chance of being verified
+            business_type: businessTypes[Math.floor(Math.random() * businessTypes.length)],
+            organization: {
+              connect: { id: org.id }
+            }
+          }
+        });
+      }
+
+      // Connect 2-4 random users to each organization
+      const numUsers = Math.floor(Math.random() * 3) + 2;
+      const randomUsers = users
+        .sort(() => Math.random() - 0.5)
+        .slice(0, numUsers);
+
+      await Promise.all(
+        randomUsers.map(user =>
+          prisma.organizationUser.create({
+            data: {
+              organization: {
+                connect: { id: org.id }
+              },
+              user: {
+                connect: { id: user.id }
+              }
+            }
+          })
+        )
+      );
+    }
+
+    console.log('Demo organizations and businesses seeded successfully!');
+  } catch (error) {
+    console.error('Error seeding organizations and businesses:', error);
+    throw error;
+  }
+}
 
 export async function seedAPMCData() {
   try {
@@ -8,16 +88,19 @@ export async function seedAPMCData() {
     const locations = await Promise.all([
       prisma.location.create({
         data: {
+          id:"fdc6afbe-af8c-4c3f-8ace-31453349d123",
           title: 'Unjha',
         },
       }),
       prisma.location.create({
         data: {
+          id:"fdc6afbe-af8c-4c3f-8ace-31453349d122",
           title: 'Rajkot',
         },
       }),
       prisma.location.create({
         data: {
+          id:"fdc6afbe-af8c-4c3f-8ace-31453349d121",
           title: 'Gondal',
         },
       }),
@@ -149,6 +232,9 @@ export async function seedAPMCData() {
       }
     }
 
+    // Add organizations and businesses
+    await seedOrganizationsAndBusinesses(users);
+
     console.log('Demo APMC data seeded successfully!');
     return { locations, apmcAdmins, apmcs, users };
   } catch (error) {
@@ -206,6 +292,7 @@ async function seedShopsAndSlots() {
     // Get all APMCs and commodities
     const apmcs = await prisma.aPMC.findMany();
     const commodities = await prisma.commodity.findMany();
+    let allShops: any[] = [];
 
     // First create APMCCommodity connections
     for (const apmc of apmcs) {
@@ -227,10 +314,10 @@ async function seedShopsAndSlots() {
       const shops = await Promise.all(
         Array.from({ length: 5 }, async (_, i) => {
           // Randomly select 2-6 commodities for each shop
-          const numCommodities = Math.floor(Math.random() * 5) + 2; // Random number between 2-6
+          const numCommodities = Math.floor(Math.random() * 5) + 2;
           const selectedCommodities = commodities
-            .sort(() => Math.random() - 0.5) // Shuffle commodities
-            .slice(0, numCommodities); // Take first 2-6 commodities
+            .sort(() => Math.random() - 0.5)
+            .slice(0, numCommodities);
 
           return prisma.shop.create({
             data: {
@@ -243,6 +330,8 @@ async function seedShopsAndSlots() {
           });
         })
       );
+      
+      allShops = [...allShops, ...shops];
 
       // Create 10 slots for each APMC
       const now = new Date();
@@ -290,6 +379,7 @@ async function seedShopsAndSlots() {
     }
 
     console.log('Demo shops and slots data seeded successfully!');
+    return allShops;
   } catch (error) {
     console.error('Error seeding shops and slots data:', error);
     throw error;
@@ -298,18 +388,26 @@ async function seedShopsAndSlots() {
 async function seedAdmin(){
   await prisma.admin.create({
     data: {
+      id:"fdc6afbe-af8c-4c3f-8ace-31453349d124",
       username: "admin",
       password: bcrypt.hashSync("admin", 10),
       mobile_number: "+919828527448",
     }
   })
 }
-// Modify the main execution to run all seeding functions
+// Modify the main execution to run all seeding functions in the correct order
 async function seedAllData() {
-  await seedCommodities();
-  await seedAPMCData();
-  await seedShopsAndSlots();
-  await seedAdmin();
+  try {
+    await seedCommodities();
+    const { users } = await seedAPMCData();
+    await seedShopsAndSlots();
+    await seedOrganizationsAndBusinesses(users);
+    await seedAdmin();
+    console.log('All demo data seeded successfully!');
+  } catch (error) {
+    console.error('Error in seedAllData:', error);
+    throw error;
+  }
 }
 
 seedAllData();

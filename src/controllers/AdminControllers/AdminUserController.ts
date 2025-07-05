@@ -78,7 +78,20 @@ export class AdminUserController {
         include: {
           roles: {
             include: {
-              apmc: true
+              apmc: {
+                include: {
+                  location: true
+                }
+              }
+            }
+          },
+          organizationUsers: {
+            include: {
+              organization: {
+                include: {
+                  businesses: true
+                }
+              }
             }
           }
         }
@@ -87,6 +100,74 @@ export class AdminUserController {
 
     } catch (error) {
       console.error('Get all Users error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  static async updateBusinessVerification(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { businessId } = req.params;
+      const { is_verified } = req.body;
+      console.log("In updateBusinessVerification",{businessId, is_verified});
+      if (typeof is_verified !== 'boolean') {
+        return res.status(400).json({ error: 'is_verified must be a boolean' });
+      }
+
+      const business = await prisma.business.update({
+        where: { id: businessId },
+        data: { 
+          is_verified
+        },
+        include: {
+          organization: {
+            include: {
+              users: {
+                include: {
+                  user: true
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Return the updated business with its related data
+      return res.json(business);
+
+    } catch (error) {
+      console.error('Update Business Verification error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  static async updateRoleApproval(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { roleId } = req.params;
+      const { is_approved } = req.body;
+
+      if (typeof is_approved !== 'boolean') {
+        return res.status(400).json({ error: 'is_approved must be a boolean' });
+      }
+
+      const role = await prisma.role.update({
+        where: { id: roleId },
+        data: { 
+          is_approved
+        },
+        include: {
+          apmc: {
+            include: {
+              location: true
+            }
+          },
+          user: true
+        }
+      });
+
+      return res.json(role);
+
+    } catch (error) {
+      console.error('Update Role Approval error:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
   }

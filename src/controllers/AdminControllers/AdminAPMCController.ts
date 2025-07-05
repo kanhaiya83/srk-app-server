@@ -10,10 +10,46 @@ interface AuthenticatedRequest extends Request {
 export class AdminAPMCController {
   static async create(req: AuthenticatedRequest, res: Response) {
     try {
-      const { name, location_id } = req.body;
-
+      const { name, location_id, admin_ids, commodity_ids } = req.body;
+      console.log("Request body in AdminAPMCController.create:", req.body);
       const apmc = await prisma.aPMC.create({
-        data: { name, location_id }
+        data: { 
+          name, 
+          location_id,
+          admins: {
+            connect: admin_ids.map((id: string) => ({ id }))
+          },
+          commodities: {
+            create: commodity_ids.map((commodity_id: string) => ({
+              commodity: {
+                connect: { id: commodity_id }
+              },
+              disabled: false
+            }))
+          }
+        },
+        include: {
+          location: true,
+          users: true,
+          shops: {
+            include: {
+              commodities: true
+            }
+          },
+          admins: true,
+          slots: {
+            include: {
+              commodity: true,
+              shops_eligible: true,
+              shops_participated: true
+            }
+          },
+          commodities: {
+            include: {
+              commodity: true
+            }
+          }
+        }
       });
 
       return res.status(201).json(apmc);
@@ -27,11 +63,61 @@ export class AdminAPMCController {
   static async update(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
-      const { name, location_id } = req.body;
+      const { name, location_id, admin_ids, commodity_ids } = req.body;
 
+      // First, disconnect all existing relationships
+      await prisma.aPMC.update({
+        where: { id },
+        data: {
+          admins: {
+            set: []
+          },
+          commodities: {
+            deleteMany: {}
+          }
+        }
+      });
+
+      // Then update with new relationships
       const apmc = await prisma.aPMC.update({
         where: { id },
-        data: { name, location_id }
+        data: { 
+          name, 
+          location_id,
+          admins: {
+            connect: admin_ids.map((id: string) => ({ id }))
+          },
+          commodities: {
+            create: commodity_ids.map((commodity_id: string) => ({
+              commodity: {
+                connect: { id: commodity_id }
+              },
+              disabled: false
+            }))
+          }
+        },
+        include: {
+          location: true,
+          users: true,
+          shops: {
+            include: {
+              commodities: true
+            }
+          },
+          admins: true,
+          slots: {
+            include: {
+              commodity: true,
+              shops_eligible: true,
+              shops_participated: true
+            }
+          },
+          commodities: {
+            include: {
+              commodity: true
+            }
+          }
+        }
       });
 
       return res.json(apmc);
@@ -46,6 +132,31 @@ export class AdminAPMCController {
     try {
       const { id } = req.params;
 
+      // Delete all roles associated with this APMC first
+      await prisma.role.deleteMany({
+        where: { apmc_id: id }
+      });
+
+      // Then clear other relationships
+      await prisma.aPMC.update({
+        where: { id },
+        data: {
+          admins: {
+            set: []
+          },
+          commodities: {
+            deleteMany: {}
+          },
+          slots: {
+            deleteMany: {}
+          },
+          shops: {
+            deleteMany: {}
+          }
+        }
+      });
+
+      // Finally delete the APMC
       await prisma.aPMC.delete({
         where: { id }
       });
@@ -63,7 +174,20 @@ export class AdminAPMCController {
       const apmcs = await prisma.aPMC.findMany({
         include: {
           location: true,
+          users: true,
+          shops: {
+            include: {
+              commodities: true
+            }
+          },
           admins: true,
+          slots: {
+            include: {
+              commodity: true,
+              shops_eligible: true,
+              shops_participated: true
+            }
+          },
           commodities: {
             include: {
               commodity: true

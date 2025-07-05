@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { VendorController } from '../controllers/VendorController';
-import { authenticateVendor } from '../middlewares/authenticateVendor';
+import { UserController } from '../controllers/UserController';
+import { authenticateUser } from '../middlewares/authenticateUser';
 
 const router = Router();
-const vendorController = new VendorController();
+const userController = new UserController();
 
 /**
  * @swagger
@@ -39,9 +39,9 @@ const vendorController = new VendorController();
  *       500:
  *         description: Internal server error.
  */
-router.post('/login', vendorController.login);
-router.delete('/', vendorController.deleteAll);
-router.get('/fake', vendorController.createFakes);
+router.post('/login', userController.login);
+router.delete('/', userController.deleteAll);
+router.get('/fake', userController.createFakes);
 
 /**
  * @swagger
@@ -65,7 +65,7 @@ router.get('/fake', vendorController.createFakes);
  *       500:
  *         description: Internal server error.
  */
-router.post('/create', vendorController.create);
+router.post('/create', userController.create);
 
 /**
  * @swagger
@@ -89,7 +89,7 @@ router.post('/create', vendorController.create);
  *       500:
  *         description: Internal server error.
  */
-router.get('/me', authenticateVendor, vendorController.me);
+router.get('/me', authenticateUser, userController.me);
 
 /**
  * @swagger
@@ -116,7 +116,7 @@ router.get('/me', authenticateVendor, vendorController.me);
  *       500:
  *         description: Internal server error.
  */
-router.get('/:id', authenticateVendor, vendorController.findOne);
+router.get('/:id', authenticateUser, userController.findOne);
 
 /**
  * @swagger
@@ -136,7 +136,7 @@ router.get('/:id', authenticateVendor, vendorController.findOne);
  *       500:
  *         description: Internal server error.
  */
-router.get('/', vendorController.findAll);
+router.get('/', userController.findAll);
 
 /**
  * @swagger
@@ -164,7 +164,7 @@ router.get('/', vendorController.findAll);
  *       500:
  *         description: Internal server error.
  */
-router.put('/', vendorController.update);
+router.put('/', userController.update);
 
 /**
  * @swagger

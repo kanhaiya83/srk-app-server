@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AuctionController } from '../controllers/AuctionController';
-import { authenticateVendor } from '../middlewares/authenticateVendor';
+import { authenticateUser } from '../middlewares/authenticateUser';
 
 const router = Router();
 const auctionController = new AuctionController();
@@ -31,7 +31,7 @@ const auctionController = new AuctionController();
  *       500:
  *         description: Internal server error.
  */
-router.post('/create', authenticateVendor, auctionController.create);
+router.post('/create', authenticateUser, auctionController.create);
 
 /**
  * @swagger
@@ -102,7 +102,7 @@ router.get('/', auctionController.findAll);
  *       500:
  *         description: Internal server error.
  */
-router.get('/me', authenticateVendor, auctionController.me);
+router.get('/me', authenticateUser, auctionController.me);
 
 /**
  * @swagger
@@ -133,7 +133,7 @@ router.get('/me', authenticateVendor, auctionController.me);
  *       500:
  *         description: Internal server error.
  */
-router.get('/participated', authenticateVendor, auctionController.participated);
+router.get('/participated', authenticateUser, auctionController.participated);
 
 /**
  * @swagger
@@ -219,7 +219,7 @@ router.get('/search', auctionController.search);
  *       500:
  *         description: Internal server error.
  */
-router.put('/:id', authenticateVendor, auctionController.update);
+router.put('/:id', authenticateUser, auctionController.update);
 
 /**
  * @swagger
@@ -484,7 +484,7 @@ router.put('/:id', authenticateVendor, auctionController.update);
  *       500:
  *         description: Internal server error.
  */
-router.post('/:id/participate', authenticateVendor, auctionController.participateInAuction);
+router.post('/:id/participate', authenticateUser, auctionController.participateInAuction);
 
 /**
  * @swagger
@@ -513,7 +513,7 @@ router.post('/:id/participate', authenticateVendor, auctionController.participat
  *       500:
  *         description: Internal server error.
  */
-router.post('/:id/leave', authenticateVendor, auctionController.leaveAuction);
+router.post('/:id/leave', authenticateUser, auctionController.leaveAuction);
 
 /**
  * @swagger
@@ -552,6 +552,6 @@ router.post('/:id/leave', authenticateVendor, auctionController.leaveAuction);
  *       500:
  *         description: Internal server error.
  */
-router.post('/:id/bid', authenticateVendor, auctionController.bidOnAuction);
+router.post('/:id/bid', authenticateUser, auctionController.bidOnAuction);
 router.post('/:id/bid/test', auctionController.bidOnAuctionTest);
 export default router;

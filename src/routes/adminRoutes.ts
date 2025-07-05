@@ -45,5 +45,7 @@ router.post('/users', AdminUserController.create as unknown as RequestHandler);
 router.put('/users/:id', AdminUserController.update as unknown as RequestHandler);
 router.delete('/users/:id', AdminUserController.delete as unknown as RequestHandler);
 router.get('/users', AdminUserController.getAll as unknown as RequestHandler);
+router.put('/users/business/:businessId', AdminUserController.updateBusinessVerification as unknown as RequestHandler);
+router.put('/users/role/:roleId', AdminUserController.updateRoleApproval as unknown as RequestHandler);
 
 export default router; 

@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { PrismaClient, Prisma, AuctionStatus  } from '@prisma/client';
-// import { authenticateVendor } from '../middlewares/authenticateVendor';
 
 const prisma = new PrismaClient();
 async function manageAuction(auctionId: string): Promise<void> {
@@ -155,14 +154,13 @@ setInterval(async ()=>{
 export class AuctionController {
   async create(req: Request, res: Response) {
     try {
-      // @ts-expect-error feef
-      const vendorId = req.vendorId; // Attached by authenticateVendor
+      const userId = req.userId;
       req.body.start_time = req.body.start_time || new Date(new Date().getTime() + 60 *1000)
       const auctionData: Prisma.AuctionCreateInput = {
         ...req.body,
         second_round_start_time:new Date(new Date(req.body.start_time).getTime() + req.body.first_round_duration*60*1000 + 30*1000) ,
         creator: {
-          connect: { id: vendorId },
+          connect: { id: userId },
         },
       };
       console.log(req.body)
@@ -226,10 +224,9 @@ export class AuctionController {
 
   async me(req: Request, res: Response) {
     try {
-      // @ts-expect-error feef
-      const vendorId = req.vendorId;
+      const userId = req.userId;
       const myAuctions = await prisma.auction.findMany({
-        where: { creatorId: vendorId },
+        where: { creatorId: userId },
         include: {
           creator: true,
           participants: true,
@@ -246,15 +243,14 @@ export class AuctionController {
 
   async participated(req: Request, res: Response) {
     try {
-      // @ts-expect-error feef
-      const vendorId = req.vendorId;
+      const userId = req.userId;
       const { filter } = req.query; // 'upcoming' or 'gone'
 
       const now = new Date();
       let whereClause: Prisma.AuctionWhereInput = {
         participants: {
           some: {
-            id: vendorId,
+            id: userId,
           },
         },
       };
@@ -349,8 +345,7 @@ export class AuctionController {
 
   async update(req: Request, res: Response) {
     try {
-      // @ts-expect-error feef
-      const vendorId = req.vendorId;
+      const userId = req.userId;
       const auctionId = req.params.id
       const auctionData: Prisma.AuctionUpdateInput = req.body;
 
@@ -359,7 +354,7 @@ export class AuctionController {
         where: { id: auctionId },
       });
 
-      if (!auction || auction.creatorId !== vendorId) {
+      if (!auction || auction.creatorId !== userId) {
          res.status(403).json({ error: 'Forbidden: You are not the creator of this auction' });
          return
       }
@@ -379,8 +374,7 @@ export class AuctionController {
   }
   async participateInAuction(req: Request, res: Response) {
     try {
-      // @ts-expect-error feef
-      const vendorId = req.vendorId;
+      const userId = req.userId;
       const auctionId = req.params.id
 
       const auction = await prisma.auction.findUnique({
@@ -392,7 +386,7 @@ export class AuctionController {
          return
       }
 
-      if (auction.creatorId === vendorId) {
+      if (auction.creatorId === userId) {
         res.status(400).json({ error: 'You cannot participate in your own auction' }); // Cannot participate in own auction
         return
      }
@@ -402,7 +396,7 @@ export class AuctionController {
      }
 
       const vendor = await prisma.user.findUnique({
-        where: { id: vendorId },
+        where: { id: userId },
       });
 
       if (!vendor) {
@@ -415,7 +409,7 @@ export class AuctionController {
          return
       }
 
-      // if (auction.participants.some(participant => participant.id === vendorId)) {
+      // if (auction.participants.some(participant => participant.id === userId)) {
       //    res.status(400).json({ error: 'Already participating in this auction' }); // Already participating
       //    return
       // }
@@ -425,12 +419,12 @@ export class AuctionController {
           where: { id: auctionId },
           data: {
             participants: {
-              connect: { id: vendorId },
+              connect: { id: userId },
             },
           },
         }),
         prisma.user.update({
-          where: { id: vendorId },
+          where: { id: userId },
           data: {
             notional_amount: {
               decrement: auction.min_notional_entry,
@@ -450,8 +444,7 @@ export class AuctionController {
 
   async leaveAuction(req: Request, res: Response) {
     try {
-      // @ts-expect-error feef
-      const vendorId = req.vendorId;
+      const userId = req.userId;
       const auctionId = req.params.id
 
       const auction = await prisma.auction.findUnique({
@@ -466,7 +459,7 @@ export class AuctionController {
          return
       }
 
-      if (!auction.participants.some(participant => participant.id === vendorId)) {
+      if (!auction.participants.some(participant => participant.id === userId)) {
          res.status(400).json({ error: 'Not participating in this auction' }); // Not participating
          return
       }
@@ -476,12 +469,12 @@ export class AuctionController {
           where: { id: auctionId },
           data: {
             participants: {
-              disconnect: { id: vendorId },
+              disconnect: { id: userId },
             },
           },
         }),
         prisma.user.update({
-          where: { id: vendorId },
+          where: { id: userId },
           data: {
             notional_amount: {
               increment: auction.min_notional_entry,
@@ -501,8 +494,7 @@ export class AuctionController {
 
   async bidOnAuction(req: Request, res: Response) {
     try {
-      // @ts-expect-error feef
-      const vendorId = req.vendorId;
+      const userId = req.userId;
       const auctionId = req.params.id
       const { amount } = req.body;
 
@@ -513,7 +505,7 @@ export class AuctionController {
         select: {
           participants: {
             where: {
-              id: vendorId,
+              id: userId,
             },
             select: {
               id: true,
@@ -540,7 +532,7 @@ export class AuctionController {
       const existingBid = await prisma.bid.findFirst({
         where: {
           auctionId: auctionId,
-          userId: vendorId,
+          userId: userId,
         },
       });
 
@@ -559,7 +551,7 @@ export class AuctionController {
           data: {
             amount,
             auction: { connect: { id: auctionId } },
-            user: { connect: { id: vendorId } },
+            user: { connect: { id: userId } },
           },
         });
 
@@ -576,7 +568,7 @@ export class AuctionController {
   async bidOnAuctionTest(req: Request, res: Response) {
     try {
       const auctionId = req.params.id
-      const { amount,vendorId } = req.body;
+      const { amount,userId } = req.body;
 
       const auction = await prisma.auction.findUnique({
         where: { id: auctionId },
@@ -591,12 +583,12 @@ export class AuctionController {
           where: { id: auctionId },
           data: {
             participants: {
-              connect: { id: vendorId },
+              connect: { id: userId },
             },
           },
         }),
         prisma.user.update({
-          where: { id: vendorId },
+          where: { id: userId },
           data: {
             notional_amount: {
               decrement: auction.min_notional_entry,
@@ -619,7 +611,7 @@ export class AuctionController {
       const existingBid = await prisma.bid.findFirst({
         where: {
           auctionId: auctionId,
-          userId: vendorId,
+          userId: userId,
         },
       });
 
@@ -638,7 +630,7 @@ export class AuctionController {
           data: {
             amount,
             auction: { connect: { id: auctionId } },
-            user: { connect: { id: vendorId } },
+            user: { connect: { id: userId } },
           },
         });
 
