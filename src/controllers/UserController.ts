@@ -338,4 +338,45 @@ export class UserController {
       return
     }
   }
+
+  async findByPhone(req: Request, res: Response) {
+    try {
+      const { phone } = req.query;
+
+      if (!phone || typeof phone !== 'string') {
+        res.status(400).json({ error: 'Phone number is required' });
+        return;
+      }
+
+      // Find user with their roles
+      const user = await prisma.user.findMany({
+        where: { mobile_number: phone },
+        include: {
+          roles: {
+            include: {
+              apmc: true
+            }
+          }
+        }
+      });
+
+      // Find APMC admin
+      const apmcAdmin = await prisma.aPMCAdmin.findMany({
+        where: { mobile_number: phone },
+        include: {
+          apmcs: true
+        }
+      });
+
+      res.status(200).json({
+        users: user || [],
+        apmcAdmins: apmcAdmin || []
+      });
+      return;
+    } catch (error) {
+      console.error('Error finding by phone:', error);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+  }
 }

@@ -1,7 +1,5 @@
 import express from 'express';
-import swaggerUi from 'swagger-ui-express'
-import swaggerJsDoc from 'swagger-jsdoc'
-import vendorRouter from './routes/vendorRoutes';
+import userRouter from './routes/userRoutes';
 import auctionRouter from './routes/auctionRoutes';
 import adminRouter from './routes/adminRoutes';
 import "./config/firebase"
@@ -17,22 +15,6 @@ app.use(cors())
 app.use(express.json())
 app.use(requestLogger);  // Add request logging middleware
 
-const options = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'SRK Auction App Docs',
-      version: '1.0.0',
-      description: 'API documentation',
-    },
-    servers: [
-      {
-        url: 'http://localhost:5000', // Replace with your server URL
-      },
-    ],
-  },
-  apis: ['./src/routes/*.js','./src/routes/*.ts','./src/controllers/*.js','./src/controllers/*.ts'], // Path to the API docs
-};
 
 // const swaggerSpec = swaggerJsDoc(options);
 // const setupSwagger = () => {
@@ -42,7 +24,7 @@ const options = {
 // setupSwagger()
 
 // Routes
-app.use("/vendors",vendorRouter)
+app.use("/users",userRouter)
 app.use("/auctions",auctionRouter)
 app.use("/apmcadmin",APMCRoutes)
 app.use("/admin",adminRouter)
